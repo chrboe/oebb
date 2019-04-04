@@ -148,7 +148,7 @@ type Connection struct {
 	Duration int              `json:"duration"`
 }
 
-func getConnections(from, to Station, a AuthResponse) (*ConnectionsResponse, error) {
+func GetConnections(from, to Station, a AuthResponse) (*ConnectionsResponse, error) {
 	client := &http.Client{}
 
 	cr := ConnectionsRequest{

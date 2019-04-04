@@ -17,7 +17,7 @@ type Station struct {
 	Number    int    `json:"number"`
 }
 
-func getStations(name string, a AuthResponse) ([]Station, error) {
+func GetStations(name string, a AuthResponse) ([]Station, error) {
 	client := &http.Client{}
 
 	req, err := http.NewRequest("GET", STATIONS_URL+"?name="+url.QueryEscape(name), nil)

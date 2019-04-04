@@ -32,7 +32,7 @@ type AuthResponse struct {
 	Cookie             string
 }
 
-func auth() (AuthResponse, error) {
+func Auth() (AuthResponse, error) {
 	client := &http.Client{}
 
 	req, err := http.NewRequest("GET", AUTH_URL, nil)
