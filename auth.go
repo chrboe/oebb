@@ -7,10 +7,10 @@ import (
 	"time"
 )
 
-const AUTH_URL = "https://tickets.oebb.at/api/domain/v3/init"
+const authURL = "https://tickets.oebb.at/api/domain/v3/init"
 
-type AuthResponse struct {
-	AccessToken string `json:"accessToken"`
+type authResponse struct {
+	AccessToken string `json:"accessToken"` // this is actually duplicated in the response
 	Token       struct {
 		AccessToken  string `json:"accessToken"`
 		RefreshToken string `json:"refreshToken"`
@@ -29,20 +29,39 @@ type AuthResponse struct {
 	SessionVersion     string    `json:"sessionVersion"`
 	SessionCreatedAt   time.Time `json:"sessionCreatedAt"`
 	XffxIP             string    `json:"xffxIP"`
-	Cookie             string
 }
 
-func Auth() (AuthResponse, error) {
+// AuthInfo describes info used to authenticate requests against the ÖBB API.
+// This information can be cached and re-used at a later time.
+type AuthInfo struct {
+	AccessToken string
+	Channel     string
+	SessionID   string
+	SupportID   string
+}
+
+// Auth authenticates against the ÖBB API.
+// The result is a response containing, among other things, an access token and
+// a refresh token.
+// No credentials are actually required to interact with the API.
+func Auth() (AuthInfo, error) {
 	client := &http.Client{}
 
-	req, err := http.NewRequest("GET", AUTH_URL, nil)
+	req, err := http.NewRequest("GET", authURL, nil)
 	resp, err := client.Do(req)
 
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(resp.Body)
 
-	var authResp AuthResponse
+	var authResp authResponse
 	json.Unmarshal(buf.Bytes(), &authResp)
 
-	return authResp, err
+	info := AuthInfo{
+		AccessToken: authResp.Token.AccessToken,
+		Channel:     authResp.Channel,
+		SessionID:   authResp.SessionID,
+		SupportID:   authResp.SupportID,
+	}
+
+	return info, err
 }

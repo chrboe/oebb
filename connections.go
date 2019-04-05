@@ -8,26 +8,26 @@ import (
 	"time"
 )
 
-const CONNECTIONS_URL = "https://tickets.oebb.at/api/hafas/v4/timetable"
+const connectionsURL = "https://tickets.oebb.at/api/hafas/v4/timetable"
 
 //
 // REQUEST
 //
 
-type ConnectionsRequest struct {
-	Reverse           bool        `json:"reverse"`
-	DatetimeDeparture string      `json:"datetimeDeparture"`
-	Filter            Filter      `json:"filter"`
-	Passengers        []Passenger `json:"passengers"`
-	Count             int         `json:"count"`
-	DebugFilter       DebugFilter `json:"debugFilter"`
-	SortType          string      `json:"sortType"`
-	From              Station     `json:"from"`
-	To                Station     `json:"to"`
-	Timeout           struct{}    `json:"timeout"`
+type connectionRequest struct {
+	Reverse           bool                   `json:"reverse"`
+	DatetimeDeparture string                 `json:"datetimeDeparture"`
+	Filter            connectionsFilter      `json:"filter"`
+	Passengers        []passenger            `json:"passengers"`
+	Count             int                    `json:"count"`
+	DebugFilter       connectionsDebugFilter `json:"debugFilter"`
+	SortType          string                 `json:"sortType"`
+	From              Station                `json:"from"`
+	To                Station                `json:"to"`
+	Timeout           struct{}               `json:"timeout"`
 }
 
-type Filter struct {
+type connectionsFilter struct {
 	Regionaltrains     bool `json:"regionaltrains"`
 	Direct             bool `json:"direct"`
 	ChangeTime         bool `json:"changeTime"`
@@ -38,19 +38,19 @@ type Filter struct {
 	DroppedConnections bool `json:"droppedConnections"`
 }
 
-type ChallengedFlags struct {
+type challengedFlags struct {
 	HasHandicappedPass bool `json:"hasHandicappedPass"`
 	HasAssistanceDog   bool `json:"hasAssistanceDog"`
 	HasWheelchair      bool `json:"hasWheelchair"`
 	HasAttendant       bool `json:"hasAttendant"`
 }
 
-type Passenger struct {
+type passenger struct {
 	Type                string          `json:"type"`
 	ID                  int             `json:"id"`
 	Me                  bool            `json:"me"`
 	Remembered          bool            `json:"remembered"`
-	ChallengedFlags     ChallengedFlags `json:"challengedFlags"`
+	ChallengedFlags     challengedFlags `json:"challengedFlags"`
 	Relations           []interface{}   `json:"relations"`
 	Cards               []interface{}   `json:"cards"`
 	BirthdateChangeable bool            `json:"birthdateChangeable"`
@@ -60,7 +60,7 @@ type Passenger struct {
 	IsSelected          bool            `json:"isSelected"`
 }
 
-type DebugFilter struct {
+type connectionsDebugFilter struct {
 	NoAggregationFilter bool `json:"noAggregationFilter"`
 	NoEqclassFilter     bool `json:"noEqclassFilter"`
 	NoNrtpathFilter     bool `json:"noNrtpathFilter"`
@@ -74,7 +74,7 @@ type DebugFilter struct {
 // RESPONSE
 //
 
-type ConnectionsResponse struct {
+type connectionsResponse struct {
 	Connections []Connection `json:"connections"`
 }
 
@@ -96,38 +96,32 @@ type ArrivalStation struct {
 	ShowAsResolvedMetaStation bool   `json:"showAsResolvedMetaStation"`
 }
 
-type LongName struct {
-	De string `json:"de"`
-	En string `json:"en"`
-	It string `json:"it"`
-}
-
-type Place struct {
+type TranslatedString struct {
 	De string `json:"de"`
 	En string `json:"en"`
 	It string `json:"it"`
 }
 
 type Category struct {
-	Name                          string   `json:"name"`
-	Number                        string   `json:"number"`
-	ShortName                     string   `json:"shortName"`
-	DisplayName                   string   `json:"displayName"`
-	LongName                      LongName `json:"longName"`
-	BackgroundColor               string   `json:"backgroundColor"`
-	FontColor                     string   `json:"fontColor"`
-	BarColor                      string   `json:"barColor"`
-	Place                         Place    `json:"place"`
-	JourneyPreviewIconID          string   `json:"journeyPreviewIconId"`
-	JourneyPreviewIconColor       string   `json:"journeyPreviewIconColor"`
-	AssistantIconID               string   `json:"assistantIconId"`
-	Train                         bool     `json:"train"`
-	ParallelLongName              string   `json:"parallelLongName"`
-	ParallelDisplayName           string   `json:"parallelDisplayName"`
-	BackgroundColorDisabledMobile string   `json:"backgroundColorDisabledMobile"`
-	BackgroundColorDisabled       string   `json:"backgroundColorDisabled"`
-	FontColorDisabled             string   `json:"fontColorDisabled"`
-	BarColorDisabled              string   `json:"barColorDisabled"`
+	Name                          string           `json:"name"`
+	Number                        string           `json:"number"`
+	ShortName                     string           `json:"shortName"`
+	DisplayName                   string           `json:"displayName"`
+	LongName                      TranslatedString `json:"longName"`
+	BackgroundColor               string           `json:"backgroundColor"`
+	FontColor                     string           `json:"fontColor"`
+	BarColor                      string           `json:"barColor"`
+	Place                         TranslatedString `json:"place"`
+	JourneyPreviewIconID          string           `json:"journeyPreviewIconId"`
+	JourneyPreviewIconColor       string           `json:"journeyPreviewIconColor"`
+	AssistantIconID               string           `json:"assistantIconId"`
+	Train                         bool             `json:"train"`
+	ParallelLongName              string           `json:"parallelLongName"`
+	ParallelDisplayName           string           `json:"parallelDisplayName"`
+	BackgroundColorDisabledMobile string           `json:"backgroundColorDisabledMobile"`
+	BackgroundColorDisabled       string           `json:"backgroundColorDisabled"`
+	FontColorDisabled             string           `json:"fontColorDisabled"`
+	BarColorDisabled              string           `json:"barColorDisabled"`
 }
 
 type Section struct {
@@ -148,13 +142,13 @@ type Connection struct {
 	Duration int              `json:"duration"`
 }
 
-func GetConnections(from, to Station, a AuthResponse) (*ConnectionsResponse, error) {
+func GetConnections(from, to Station, a AuthInfo) ([]Connection, error) {
 	client := &http.Client{}
 
-	cr := ConnectionsRequest{
+	cr := connectionRequest{
 		Reverse:           false,
 		DatetimeDeparture: time.Now().Format("2006-01-02T15:04:05.999"),
-		Filter: Filter{
+		Filter: connectionsFilter{
 			Regionaltrains:     false,
 			Direct:             false,
 			ChangeTime:         false,
@@ -164,13 +158,13 @@ func GetConnections(from, to Station, a AuthResponse) (*ConnectionsResponse, err
 			Motorail:           false,
 			DroppedConnections: false,
 		},
-		Passengers: []Passenger{
-			Passenger{
+		Passengers: []passenger{
+			passenger{
 				Type:       "ADULT",
 				ID:         1554277150,
 				Me:         false,
 				Remembered: false,
-				ChallengedFlags: ChallengedFlags{
+				ChallengedFlags: challengedFlags{
 					HasHandicappedPass: false,
 					HasAssistanceDog:   false,
 					HasWheelchair:      false,
@@ -186,7 +180,7 @@ func GetConnections(from, to Station, a AuthResponse) (*ConnectionsResponse, err
 			},
 		},
 		Count: 5,
-		DebugFilter: DebugFilter{
+		DebugFilter: connectionsDebugFilter{
 			NoAggregationFilter: false,
 			NoEqclassFilter:     false,
 			NoNrtpathFilter:     false,
@@ -202,14 +196,12 @@ func GetConnections(from, to Station, a AuthResponse) (*ConnectionsResponse, err
 
 	body, err := json.Marshal(cr)
 
-	req, err := http.NewRequest("POST", CONNECTIONS_URL, bytes.NewBuffer(body))
+	req, err := http.NewRequest("POST", connectionsURL, bytes.NewBuffer(body))
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Channel", a.Channel)
 	req.Header.Add("AccessToken", a.AccessToken)
 	req.Header.Add("SessionId", a.SessionID)
 	req.Header.Add("x-ts-supportid", "WEB_"+a.SupportID)
-
-	req.AddCookie(&http.Cookie{Name: "ts-cookie", Value: a.Cookie})
 	resp, err := client.Do(req)
 
 	if err != nil {
@@ -219,8 +211,8 @@ func GetConnections(from, to Station, a AuthResponse) (*ConnectionsResponse, err
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(resp.Body)
 
-	connections := &ConnectionsResponse{}
+	connections := &connectionsResponse{}
 	json.Unmarshal(buf.Bytes(), connections)
 
-	return connections, err
+	return connections.Connections, err
 }

@@ -7,7 +7,7 @@ import (
 	"net/url"
 )
 
-const STATIONS_URL = "https://tickets.oebb.at/api/hafas/v1/stations"
+const stationsURL = "https://tickets.oebb.at/api/hafas/v1/stations"
 
 type Station struct {
 	Latitude  int    `json:"latitude"`
@@ -17,10 +17,10 @@ type Station struct {
 	Number    int    `json:"number"`
 }
 
-func GetStations(name string, a AuthResponse) ([]Station, error) {
+func GetStations(name string, a AuthInfo) ([]Station, error) {
 	client := &http.Client{}
 
-	req, err := http.NewRequest("GET", STATIONS_URL+"?name="+url.QueryEscape(name), nil)
+	req, err := http.NewRequest("GET", stationsURL+"?name="+url.QueryEscape(name), nil)
 	req.Header.Add("Channel", a.Channel)
 	req.Header.Add("AccessToken", a.AccessToken)
 	req.Header.Add("SessionId", a.SessionID)
