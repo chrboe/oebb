@@ -144,12 +144,12 @@ type Connection struct {
 	Duration int              `json:"duration"`
 }
 
-func GetConnections(from, to Station, a AuthInfo) ([]Connection, error) {
+func GetConnections(from, to Station, a AuthInfo, departureTime time.Time) ([]Connection, error) {
 	client := &http.Client{}
 
 	cr := connectionRequest{
 		Reverse:           false,
-		DatetimeDeparture: time.Now().Format("2006-01-02T15:04:05.999"),
+		DatetimeDeparture: departureTime.Format("2006-01-02T15:04:05.999"),
 		Filter: connectionsFilter{
 			Regionaltrains:     false,
 			Direct:             false,
