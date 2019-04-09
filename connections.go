@@ -82,6 +82,7 @@ type DepartureStation struct {
 	Name                       string `json:"name"`
 	Esn                        int    `json:"esn"`
 	Departure                  string `json:"departure"`
+	DepartureDelay             string `json:"departureDelay"`
 	DeparturePlatform          string `json:"departurePlatform"`
 	DeparturePlatformDeviation string `json:"departurePlatformDeviation"`
 	ShowAsResolvedMetaStation  bool   `json:"showAsResolvedMetaStation"`
@@ -91,6 +92,7 @@ type ArrivalStation struct {
 	Name                      string `json:"name"`
 	Esn                       int    `json:"esn"`
 	Arrival                   string `json:"arrival"`
+	ArrivalDelay              string `json:"arrivalDelay"`
 	ArrivalPlatform           string `json:"arrivalPlatform"`
 	ArrivalPlatformDeviation  string `json:"arrivalPlatform"`
 	ShowAsResolvedMetaStation bool   `json:"showAsResolvedMetaStation"`
