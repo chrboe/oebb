@@ -144,7 +144,7 @@ type Connection struct {
 	Duration int              `json:"duration"`
 }
 
-func GetConnections(from, to Station, a AuthInfo, departureTime time.Time) ([]Connection, error) {
+func GetConnections(from, to Station, a AuthInfo, departureTime time.Time, numResults int) ([]Connection, error) {
 	client := &http.Client{}
 
 	cr := connectionRequest{
@@ -181,7 +181,7 @@ func GetConnections(from, to Station, a AuthInfo, departureTime time.Time) ([]Co
 				IsSelected:          false,
 			},
 		},
-		Count: 5,
+		Count: numResults,
 		DebugFilter: connectionsDebugFilter{
 			NoAggregationFilter: false,
 			NoEqclassFilter:     false,
