@@ -94,7 +94,7 @@ type ArrivalStation struct {
 	Arrival                   string `json:"arrival"`
 	ArrivalDelay              string `json:"arrivalDelay"`
 	ArrivalPlatform           string `json:"arrivalPlatform"`
-	ArrivalPlatformDeviation  string `json:"arrivalPlatform"`
+	ArrivalPlatformDeviation  string `json:"arrivalPlatformDeviation"`
 	ShowAsResolvedMetaStation bool   `json:"showAsResolvedMetaStation"`
 }
 
