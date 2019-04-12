@@ -30,6 +30,12 @@ func GetStations(name string, a AuthInfo) ([]Station, error) {
 		return nil, err
 	}
 
+	switch resp.StatusCode {
+	case 440:
+		// login time-out: session expird
+		return nil, &SessionTimeoutError{}
+	}
+
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(resp.Body)
 

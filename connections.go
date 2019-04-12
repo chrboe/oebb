@@ -210,6 +210,13 @@ func GetConnections(from, to Station, a AuthInfo, departureTime time.Time, numRe
 		fmt.Println(err)
 		return nil, err
 	}
+
+	switch resp.StatusCode {
+	case 440:
+		// login time-out: session expird
+		return nil, &SessionTimeoutError{}
+	}
+
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(resp.Body)
 
