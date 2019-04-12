@@ -38,6 +38,7 @@ type AuthInfo struct {
 	Channel     string
 	SessionID   string
 	SupportID   string
+	ExpiresIn   int
 }
 
 // Auth authenticates against the ÖBB API.
@@ -61,6 +62,7 @@ func Auth() (AuthInfo, error) {
 		Channel:     authResp.Channel,
 		SessionID:   authResp.SessionID,
 		SupportID:   authResp.SupportID,
+		ExpiresIn:   authResp.SessionTimeout,
 	}
 
 	return info, err
