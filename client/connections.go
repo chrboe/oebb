@@ -1,4 +1,4 @@
-package oebb
+package client
 
 import (
 	"bytes"
