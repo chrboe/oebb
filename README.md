@@ -1,6 +1,7 @@
 # oebb
 
-[![GoDoc](https://godoc.org/github.com/chrboe/oebb?status.svg)](https://godoc.org/github.com/chrboe/oebb)
+[![PkgGoDev](https://pkg.go.dev/badge/github.com/chrboe/oebb/client)](https://pkg.go.dev/github.com/chrboe/oebb/client)
+![Build Status](https://github.com/chrboe/oebb/workflows/Go/badge.svg)
 
 A Go package to interface with the (unofficial) Austrian Federal Railways (ÖBB)
 Tickets & Routes API.
