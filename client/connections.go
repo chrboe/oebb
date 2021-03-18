@@ -8,7 +8,10 @@ import (
 	"time"
 )
 
-const connectionsURL = "https://tickets.oebb.at/api/hafas/v4/timetable"
+const (
+	connectionsURL = "https://tickets.oebb.at/api/hafas/v4/timetable"
+	fetchMax       = 6 // the API supports returning a maximum of 6 results
+)
 
 //
 // REQUEST
@@ -144,9 +147,7 @@ type Connection struct {
 	Duration int              `json:"duration"`
 }
 
-func GetConnections(from, to Station, a AuthInfo, departureTime time.Time, numResults int) ([]Connection, error) {
-	client := &http.Client{}
-
+func fetchConnections(client *http.Client, from, to Station, a AuthInfo, departureTime time.Time, numResults int) ([]Connection, error) {
 	cr := connectionRequest{
 		Reverse:           false,
 		DatetimeDeparture: departureTime.Format("2006-01-02T15:04:05.999"),
@@ -223,5 +224,61 @@ func GetConnections(from, to Station, a AuthInfo, departureTime time.Time, numRe
 	connections := &connectionsResponse{}
 	json.Unmarshal(buf.Bytes(), connections)
 
-	return connections.Connections, err
+	return connections.Connections, nil
+}
+
+func GetConnections(from, to Station, a AuthInfo, departureTime time.Time, numResults int) ([]Connection, error) {
+	client := &http.Client{}
+
+	var connections []Connection
+	remaining := numResults
+
+	startTime := departureTime
+
+	// fetch results, up to "fetchMax" at a time
+	for {
+		// try to fetch all remaining
+		toFetch := remaining
+		if remaining > fetchMax {
+			// ... but cap at fetchMax
+			toFetch = fetchMax
+		}
+		newConnections, err := fetchConnections(client, from, to, a, startTime, toFetch)
+		if err != nil {
+			return nil, fmt.Errorf("failed to fetch connections: %w", err)
+		}
+
+		// remove all connections that we already have
+		for _, conn := range connections {
+			for i := len(newConnections) - 1; i >= 0; i-- {
+				if newConnections[i].ID == conn.ID {
+					copy(newConnections[i:], newConnections[i+1:])
+					newConnections[len(newConnections)-1] = Connection{}
+					newConnections = newConnections[:len(newConnections)-1]
+				}
+			}
+		}
+
+		remaining -= len(newConnections)
+
+		if len(newConnections) == 0 {
+			// oops, we removed all connections. add 1 minute to the start time.
+			startTime = startTime.Add(1 * time.Minute)
+			continue
+		} else {
+			// startTime for next request is departure of last connection
+			startTime, err = time.Parse("2006-01-02T15:04:05.999", newConnections[len(newConnections)-1].From.Departure)
+			if err != nil {
+				return nil, fmt.Errorf("invalid time returned by api: %w", err)
+			}
+		}
+
+		connections = append(connections, newConnections...)
+
+		if remaining <= 0 {
+			break
+		}
+	}
+
+	return connections, nil
 }
